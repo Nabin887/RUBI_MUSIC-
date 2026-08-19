@@ -156,8 +156,18 @@ const SearchPage: React.FC<SearchPageProps> = ({ query = '', setQuery }) => {
             </div>
           ) : filteredSongs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-[#8ea7c0]">
-              <p className="text-lg font-semibold">No songs found for "{query.trim()}"</p>
-              <p className="text-sm">Try a different artist/title, or disable "Songs Only".</p>
+              <p className="text-lg font-semibold">Live search is unavailable for "{query.trim()}"</p>
+              <p className="text-sm text-center max-w-md mt-2">
+                This public GitHub Pages demo does not expose a YouTube API key. Open the matching YouTube results safely instead.
+              </p>
+              <a
+                className="mt-4 rounded-full bg-[#63e1f6] px-5 py-2 text-sm font-semibold text-[#06202d] hover:bg-white transition-colors"
+                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(query.trim())}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Search on YouTube
+              </a>
             </div>
           ) : (
             <div className="rounded-3xl overflow-hidden p-3 bg-[var(--ruby-panel)] border border-[var(--ruby-border)]">
