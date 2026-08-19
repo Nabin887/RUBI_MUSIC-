@@ -3,13 +3,14 @@ import { Song } from '../types';
 
 const API_KEY =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_YOUTUBE_API_KEY) ||
-  'AIzaSyALtzJFi2_RiZrQdiW0Z0OC4fpMGny6Xk0';
+  '';
 
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
 const YOUTUBE_NOKEY_BASE_URL = 'https://yt.lemnoslife.com/noKey';
 const MIN_SONG_SECONDS = 60; // 1 minute
 const MAX_SONG_SECONDS = 600; // 10 minutes
 const MAX_VIDEO_SECONDS = 900; // 15 minutes
+const LIBRARY_FETCH_TIMEOUT_MS = 8000;
 
 const GARBAGE_REGEX = /(#shorts|\bshorts\b|\breel\b|\bstatus\b|\bclip\b|\blyrics\b|\bteaser\b|\btrailer\b|\bedit\b|\breaction\b|\breact\b|\breview\b|\bpodcast\b|\binterview\b|\blive reaction\b|\btutorial\b|\bexplained\b|\bstory\b|\bnews\b|\bupdate\b|\bvlog\b|\bunboxing\b|\bchallenge\b|\bgaming\b|\bgameplay\b|\bstream\b|\blivestream\b|first time hearing|reacting to|my reaction|mashup|compilation|full album|best of|speed up|slowed|reverb|nightcore|8d audio)/i;
 const SOFT_GARBAGE_REGEX = /(#shorts|\bshorts\b|\breel\b|\bstatus\b)/i;
@@ -610,6 +611,14 @@ let librarySongsCache: Song[] | null = null;
 
 export const getLibrarySongs = async (): Promise<Song[]> => {
   if (librarySongsCache) return librarySongsCache;
+
+  // GitHub Pages has no server-side API proxy. Load the bundled starter songs
+  // immediately when no YouTube key is configured instead of waiting on CORS
+  // fallbacks that may never respond.
+  if (!API_KEY) {
+    librarySongsCache = MOCK_LIBRARY;
+    return MOCK_LIBRARY;
+  }
   
   try {
       const seedQueries = [
@@ -619,7 +628,12 @@ export const getLibrarySongs = async (): Promise<Song[]> => {
         'lofi chill beats',
       ];
 
-      const batches = await Promise.all(seedQueries.map((q) => searchSongs(q, 40)));
+      const batches = await Promise.race([
+        Promise.all(seedQueries.map((q) => searchSongs(q, 40))),
+        new Promise<Song[][]>((_, reject) =>
+          setTimeout(() => reject(new Error('Library request timed out')), LIBRARY_FETCH_TIMEOUT_MS)
+        ),
+      ]);
       const combinedFetched = uniqueSongs(batches.flat());
 
       if (!API_KEY || combinedFetched.length === 0) throw new Error("Fallback");
