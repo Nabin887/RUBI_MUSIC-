@@ -1,9 +1,10 @@
 
 import { Song } from '../types';
 
-const API_KEY =
-  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_YOUTUBE_API_KEY) ||
-  '';
+const IS_GITHUB_PAGES = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
+const API_KEY = IS_GITHUB_PAGES
+  ? ''
+  : ((typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_YOUTUBE_API_KEY) || '');
 
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
 const MIN_SONG_SECONDS = 60; // 1 minute
