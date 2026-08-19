@@ -490,11 +490,14 @@ export const searchSongs = async (query: string, optionsOrMaxResults: number | S
       const scrapedSongs = (page?.items || [])
         .map((item: any) => mapYoutubeItemToSong(item, {}))
         .filter((song: Song | null): song is Song => song !== null);
-      const cleanScraped = cleanAndFilterSongs(scrapedSongs, query, fullSongsOnly);
+      // A proxy can return trending/search suggestions when YouTube is
+      // challenged. Never show those as results for an unrelated query.
+      const relevantScraped = scrapedSongs.filter((song) => matchesQueryTerms(song, query));
+      const cleanScraped = cleanAndFilterSongs(relevantScraped, query, fullSongsOnly);
       if (cleanScraped.length > 0) {
         return sortSongs(cleanScraped, query, sortBy).slice(0, target);
       }
-      return sortSongs(searchMockLibrary(query), query, sortBy).slice(0, target);
+      return [];
     }
 
     const queryVariants = buildSearchQueries(query);
