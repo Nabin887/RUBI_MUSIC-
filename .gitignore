@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 .vite
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
 
 # Editor directories and files
 .vscode/*

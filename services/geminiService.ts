@@ -1,13 +1,10 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { Song, LyricLine } from "../types";
 
-const envApiKey =
-  (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_GEMINI_API_KEY) ||
-  (typeof process !== "undefined" && (process as any).env?.API_KEY) ||
-  "";
-
-const ai = envApiKey ? new GoogleGenAI({ apiKey: envApiKey }) : null;
+// API keys must stay on a server-side proxy. Never embed Gemini credentials
+// in the public GitHub Pages bundle.
+const ai = null;
 
 export const generatePlaylist = async (prompt: string, allSongs: Song[]): Promise<Song[]> => {
   if (!ai) {
