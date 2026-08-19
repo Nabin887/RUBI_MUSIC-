@@ -1,0 +1,5 @@
+{
+  "name": "Nabify",
+  "description": "A sleek, modern music player that uses the Gemini API to generate personalized playlists based on your mood or activity.",
+  "requestFramePermissions": []
+}

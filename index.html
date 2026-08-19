@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruby - Premium Music</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0F0F14;
+            --bg-sidebar: #09090b;
+            --bg-card: #1A1A24;
+            --bg-card-hover: #232332;
+            --text-main: #ffffff;
+            --text-secondary: #a1a1aa;
+            --primary: #1DB954;
+            --accent-purple: #8B5CF6;
+            --border: rgba(255, 255, 255, 0.05);
+            --ruby-accent: #66dff3;
+            --ruby-accent-glow: rgba(102, 223, 243, 0.32);
+            --ruby-accent-soft: #123944;
+            --ruby-bg: #061319;
+            --ruby-panel: #111f28;
+            --ruby-card: #142633;
+            --ruby-border: #274053;
+        }
+
+        body {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            background-color: var(--ruby-bg);
+            color: var(--text-main);
+            overflow: hidden;
+            margin: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body.ruby-reduced-motion *,
+        body.ruby-reduced-motion *::before,
+        body.ruby-reduced-motion *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        
+        .glass {
+            background: rgba(26, 26, 36, 0.7);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-rotate {
+            animation: rotate 20s linear infinite;
+        }
+        .paused {
+            animation-play-state: paused;
+        }
+
+        /* Wave Animation for Progress Bar */
+        @keyframes wave {
+            0% { transform: scaleY(1); }
+            50% { transform: scaleY(0.6); }
+            100% { transform: scaleY(1); }
+        }
+        .wave-bar {
+            display: inline-block;
+            width: 3px;
+            background-color: var(--primary);
+            margin: 0 1px;
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple:after {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10, 10);
+            opacity: 0;
+            transition: transform .5s, opacity 1s;
+        }
+        .ripple:active:after {
+            transform: scale(0, 0);
+            opacity: .3;
+            transition: 0s;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+        }
+    </style>
+<link rel="stylesheet" href="/index.css">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    registrations.forEach(function (registration) {
+                        registration.unregister();
+                    });
+                });
+                if ('caches' in window) {
+                    caches.keys().then(function (keys) {
+                        keys.forEach(function (key) {
+                            caches.delete(key);
+                        });
+                    });
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
