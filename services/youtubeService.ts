@@ -6,7 +6,6 @@ const API_KEY =
   '';
 
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
-const YOUTUBE_NOKEY_BASE_URL = 'https://yt.lemnoslife.com/noKey';
 const MIN_SONG_SECONDS = 60; // 1 minute
 const MAX_SONG_SECONDS = 600; // 10 minutes
 const MAX_VIDEO_SECONDS = 900; // 15 minutes
@@ -470,11 +469,6 @@ const sortSongs = (songs: Song[], query: string, sortBy: SearchSortMode) => {
 };
 
 export const searchSongs = async (query: string, optionsOrMaxResults: number | SearchSongsOptions = 80): Promise<Song[]> => {
-  if (!API_KEY) {
-    console.warn("YouTube API Key missing. Using mock.");
-    return searchMockLibrary(query);
-  }
-
   try {
     const resolvedOptions: SearchSongsOptions =
       typeof optionsOrMaxResults === 'number' ? { maxResults: optionsOrMaxResults } : optionsOrMaxResults;
@@ -483,6 +477,26 @@ export const searchSongs = async (query: string, optionsOrMaxResults: number | S
     const sortBy: SearchSortMode = resolvedOptions.sortBy ?? 'relevance';
 
     const target = Math.min(Math.max(maxResults, 1), 200);
+
+    // GitHub Pages cannot safely contain a YouTube key. For public builds,
+    // use one focused YouTube page search so real query results are still
+    // available through the CORS fallbacks, instead of searching the bundled
+    // starter tracks only.
+    if (!API_KEY) {
+      const page = await Promise.race([
+        scrapeYoutubeSearch(query, Math.min(target, 50)),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+      ]);
+      const scrapedSongs = (page?.items || [])
+        .map((item: any) => mapYoutubeItemToSong(item, {}))
+        .filter((song: Song | null): song is Song => song !== null);
+      const cleanScraped = cleanAndFilterSongs(scrapedSongs, query, fullSongsOnly);
+      if (cleanScraped.length > 0) {
+        return sortSongs(cleanScraped, query, sortBy).slice(0, target);
+      }
+      return sortSongs(searchMockLibrary(query), query, sortBy).slice(0, target);
+    }
+
     const queryVariants = buildSearchQueries(query);
     // Use medium and long for songs, but since we filter by duration, we can be more flexible
     const durationModes: Array<'medium' | 'long' | 'any'> = ['medium', 'long', 'any'];
