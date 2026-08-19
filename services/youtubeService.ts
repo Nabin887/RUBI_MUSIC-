@@ -607,6 +607,8 @@ const searchMockLibrary = (query: string): Song[] => {
     return mergedLocal.slice(0, 30); // fallback to existing library so users still get content instead of empty page
 };
 
+export const getFallbackSongs = (query = ''): Song[] => searchMockLibrary(query);
+
 let librarySongsCache: Song[] | null = null;
 
 export const getLibrarySongs = async (): Promise<Song[]> => {

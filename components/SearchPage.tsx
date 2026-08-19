@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import SongList from './SongList';
 import { Song } from '../types';
-import { searchSongs, SearchSortMode } from '../services/youtubeService';
+import { getFallbackSongs, searchSongs, SearchSortMode } from '../services/youtubeService';
 import { ICON_SEARCH } from '../constants';
 
 const RECENT_SEARCHES_KEY = 'ruby_recent_searches';
@@ -19,6 +19,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ query = '', setQuery }) => {
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [fullSongsOnly, setFullSongsOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SearchSortMode>('relevance');
+  const searchRequestRef = useRef(0);
 
   useEffect(() => {
     const value = query.trim();
@@ -28,9 +29,18 @@ const SearchPage: React.FC<SearchPageProps> = ({ query = '', setQuery }) => {
     }
 
     const timer = setTimeout(() => {
+      const requestId = searchRequestRef.current + 1;
+      searchRequestRef.current = requestId;
       setIsSearching(true);
-      searchSongs(value, { maxResults: 120, fullSongsOnly, sortBy })
+      const timeout = new Promise<Song[]>((resolve) => {
+        setTimeout(() => resolve(getFallbackSongs(value)), 6000);
+      });
+      Promise.race([
+        searchSongs(value, { maxResults: 120, fullSongsOnly, sortBy }),
+        timeout,
+      ])
         .then((songs) => {
+          if (requestId !== searchRequestRef.current) return;
           setResults(songs);
           try {
             const prev = JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || '[]');
@@ -41,10 +51,13 @@ const SearchPage: React.FC<SearchPageProps> = ({ query = '', setQuery }) => {
           }
         })
         .catch((err) => {
+          if (requestId !== searchRequestRef.current) return;
           console.error('Search failed:', err);
-          setResults([]);
+          setResults(getFallbackSongs(value));
         })
-        .finally(() => setIsSearching(false));
+        .finally(() => {
+          if (requestId === searchRequestRef.current) setIsSearching(false);
+        });
     }, 80);
 
     return () => clearTimeout(timer);
